@@ -40,6 +40,8 @@
 
 namespace licalib {
 
+
+// wgh-- 算法实现顶层类！真正的核心类。
 class CalibrHelper {
 public:
 
@@ -78,7 +80,7 @@ protected:
   std::string bag_path_;
 
   /// optimization
-  CalibStep calib_step_;
+  CalibStep calib_step_; // wgh-- 用枚举变量来管理各个步骤(状态机)
   int iteration_step_;
   bool opt_time_offset_;
 
@@ -91,13 +93,14 @@ protected:
   double associated_radius_;
   double plane_lambda_;
 
-  std::shared_ptr<IO::LioDataset> dataset_reader_;
-  InertialInitializer::Ptr rotation_initializer_;
-  TrajectoryManager::Ptr traj_manager_;
-  LiDAROdometry::Ptr lidar_odom_;
-  SurfelAssociation::Ptr surfel_association_;
+  std::shared_ptr<IO::LioDataset> dataset_reader_;// wgh-- 读入&管理rosbag数据。
+  InertialInitializer::Ptr rotation_initializer_; // wgh-- 初始化旋转外参。
+  TrajectoryManager::Ptr traj_manager_;           // wgh-- 核心中的核心，管理B样条轨迹，负责调用Ceres做batch优化，求解标定结果。
+  LiDAROdometry::Ptr lidar_odom_;                 // wgh-- NDT配准激光里程计，内部仅保存关键帧time+pose,和target地图。
+  SurfelAssociation::Ptr surfel_association_;     // wgh-- 如名，负责构造point2surface关联。
 
-  ScanUndistortion::Ptr scan_undistortion_;
+  ScanUndistortion::Ptr scan_undistortion_;       // wgh-- 如名,该类构造时既传入了`TrajectoryManager`和`LioDataset`的指针，
+                                                  // wgh-- 内部算法可直接访问两者。(所以才有途径做去运动畸变)
 };
 
 }

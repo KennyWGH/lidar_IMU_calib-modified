@@ -54,7 +54,7 @@ public:
 
 private:
   bool rotaion_initialized_;
-  Eigen::Quaterniond q_ItoS_est_;
+  Eigen::Quaterniond q_ItoS_est_; // wgh-- 存放初始化后的旋转外参估计
 
 };
 

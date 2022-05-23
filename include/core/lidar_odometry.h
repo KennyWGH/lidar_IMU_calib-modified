@@ -59,17 +59,14 @@ public:
     pcl::io::savePCDFileASCII(path, *map_cloud_);
   }
 
-  const VPointCloud::Ptr getTargetMap(){
-    return map_cloud_;
-  }
+  const VPointCloud::Ptr getTargetMap()
+  { return map_cloud_; }
 
-  const pclomp::NormalDistributionsTransform<VPoint, VPoint>::Ptr& getNDTPtr() const {
-    return ndt_omp_;
-  }
+  const pclomp::NormalDistributionsTransform<VPoint, VPoint>::Ptr& getNDTPtr() const 
+  { return ndt_omp_; }
 
-  const Eigen::aligned_vector<OdomData> &get_odom_data() const {
-    return odom_data_;
-  }
+  const Eigen::aligned_vector<OdomData> &get_odom_data() const 
+  { return odom_data_; }
 
 private:
 
@@ -83,7 +80,8 @@ private:
   bool checkKeyScan(const OdomData& odomdata);
 
   // Normalize angle to be between [-180, 180]
-  static inline double normalize_angle(double ang_degree) {
+  static inline double normalize_angle(double ang_degree) 
+  {
     if(ang_degree > 180)
       ang_degree -= 360;
 
@@ -99,7 +97,7 @@ private:
   pclomp::NormalDistributionsTransform<VPoint, VPoint>::Ptr ndt_omp_;
 
   std::vector<size_t> key_frame_index_;
-  Eigen::aligned_vector<OdomData> odom_data_;
+  Eigen::aligned_vector<OdomData> odom_data_; // 核心数据容器，NDT激光里程计的结果保存在这里。
 };
 
 

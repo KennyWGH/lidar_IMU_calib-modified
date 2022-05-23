@@ -1,5 +1,11 @@
 # LI-Calib
 
+## 中文注释说明
+本仓库的代码进行了详细的中文注释，目前已完成GUI类、算法顶层类、bag数据读取类、去畸变类、B样条轨迹类（算法核心）的注释。  
+<img src="./pic/detailed_example_01.png" alt="detailed_example_01" style="zoom: 50%;" />  
+本仓库的代码未对代码本身进行任何修改。  
+以下为原始README文件。  
+
 ## Overview
 
 **LI-Calib** is a toolkit for calibrating the 6DoF rigid transformation and the time offset between a 3D LiDAR and an IMU. It's based on continuous-time batch optimization. IMU-based cost and LiDAR point-to-surfel distance are minimized jointly, which renders the calibration problem well-constrained in general scenarios. 

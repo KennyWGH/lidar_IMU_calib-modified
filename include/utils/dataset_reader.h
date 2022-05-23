@@ -60,28 +60,27 @@ enum LidarModelType {
 };
 
 class LioDataset {
-private:
-  std::shared_ptr<LioDataset> data_;
+ private:
+  std::shared_ptr<LioDataset> data_;            // wgh-- 指向自己的嵌套指针
 
-  std::shared_ptr<rosbag::Bag> bag_;
+  std::shared_ptr<rosbag::Bag> bag_;            // wgh-- 读入的rosbag包
 
-  Eigen::aligned_vector<IMUData> imu_data_;
+  Eigen::aligned_vector<IMUData> imu_data_;     // wgh-- rosbag中的imu数据格式转化后存在这里
 
-  Eigen::aligned_vector<TPointCloud> scan_data_;
-  std::vector<double> scan_timestamps_;
+  Eigen::aligned_vector<TPointCloud> scan_data_;// wgh-- rosbag中的点云数据格式转化后存在这里
+  std::vector<double> scan_timestamps_;         // wgh-- 点云对应的时间戳
 
   double start_time_;
   double end_time_;
 
-  VelodyneCorrection::Ptr p_LidarConvert_;
+  VelodyneCorrection::Ptr p_LidarConvert_;      // wgh-- 该类用于解析rosbag中的点云消息。
 
   LidarModelType lidar_model_;
 
-public:
-  LioDataset(LidarModelType lidar_model) : lidar_model_(lidar_model) {
+ public:
+  LioDataset(LidarModelType lidar_model) : lidar_model_(lidar_model) {}
 
-  }
-
+  // wgh-- 根据雷达类型，初始化点云数据解析类
   void init() {
     switch (lidar_model_) {
       case LidarModelType::VLP_16:
@@ -98,25 +97,29 @@ public:
     }
   }
 
+  // wgh-- 打开rosbag，逐帧读取点云数据&imu输入，放入类内的容器中。
   bool read(const std::string path,
             const std::string imu_topic,
             const std::string lidar_topic,
             const double bag_start = -1.0,
-            const double bag_durr = -1.0) {
+            const double bag_durr = -1.0) 
+  {
 
     data_.reset(new LioDataset(lidar_model_));
+    // wgh-- 把rosbag包指针存入变量bag_，并打开rosbag。
     data_->bag_.reset(new rosbag::Bag);
     data_->bag_->open(path, rosbag::bagmode::Read);
 
     init();
 
+    // wgh-- 用view来读入bag包数据序列，只读取特定时段(如果设置了时段的话)。
     rosbag::View view;
     {
       std::vector<std::string> topics;
       topics.push_back(imu_topic);
       topics.push_back(lidar_topic);
 
-      rosbag::View view_full;
+      rosbag::View view_full; // wgh-- 命名为`view_temp`更恰当，仅用于获取rosbag起止时间。
       view_full.addQuery(*data_->bag_);
       ros::Time time_init = view_full.getBeginTime();
       time_init += ros::Duration(bag_start);
@@ -125,6 +128,7 @@ public:
       view.addQuery(*data_->bag_, rosbag::TopicQuery(topics), time_init, time_finish);
     }
 
+    // wgh-- 正式逐帧读取rosbag中的数据，转换格式后，分别放入点云容器和imu容器。
     for (rosbag::MessageInstance const m : view) {
       const std::string &topic = m.getTopic();
 
@@ -176,6 +180,7 @@ public:
   ///
   /// selected data [scan_0, scan_N-1],[IMU_0, IMU_N]
   /// time  [scan_0.t, scan_N.t)
+  // wgh-- 作者的注释已经说明的很清楚了，所谓adjust就是移除掉首尾多余的帧，确保点云序列和imu序列时间重叠。
   void adjustDataset() {
     assert(imu_data.size() > 0 && "No IMU data. Check your bag and imu topic");
     assert(scan_data.size() > 0 && "No scan data. Check your bag and lidar topic");

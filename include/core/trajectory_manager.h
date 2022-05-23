@@ -41,6 +41,7 @@
 #include <memory>
 
 namespace licalib {
+
 class TrajectoryManager {
   using IMUSensor = kontiki::sensors::ConstantBiasImu;
   using LiDARSensor = kontiki::sensors::VLP16LiDAR;
@@ -56,7 +57,7 @@ class TrajectoryManager {
   using OrientationMeasurement  = kontiki::measurements::OrientationMeasurement;
   using PositionMeasurement     = kontiki::measurements::PositionMeasurement;
 
-public:
+ public:
   typedef std::shared_ptr<TrajectoryManager> Ptr;
   using Result = std::unique_ptr<kontiki::trajectories::TrajectoryEvaluation<double>>;
 
@@ -67,7 +68,8 @@ public:
             map_time_(0),
             imu_(std::make_shared<IMUSensor>()),
             lidar_(std::make_shared<LiDARSensor>()),
-            calib_param_manager(std::make_shared<CalibParamManager>()) {
+            calib_param_manager(std::make_shared<CalibParamManager>()) 
+  {
     assert(knot_distance > 0 && "knot_distance should be lager than 0");
 
     double traj_start_time = start_time - time_offset_padding;
@@ -107,7 +109,7 @@ public:
     return traj_;
   }
 
-private:
+ private:
   template <typename TrajectoryModel>
   void addGyroscopeMeasurements(
           std::shared_ptr<kontiki::TrajectoryEstimator<TrajectoryModel>> estimator);
@@ -130,13 +132,14 @@ private:
 
   double map_time_;
   double time_offset_padding_;
-  std::shared_ptr<kontiki::trajectories::SplitTrajectory> traj_;
+  std::shared_ptr<kontiki::trajectories::SplitTrajectory> traj_;//表示B样条轨迹，有两个成员：
+                                                                //r3_trajectory_和so3_trajectory_。
   std::shared_ptr<kontiki::sensors::ConstantBiasImu> imu_;
   std::shared_ptr<kontiki::sensors::VLP16LiDAR> lidar_;
 
   CalibParamManager::Ptr calib_param_manager;
 
-  std::vector<IO::IMUData> imu_data_;
+  std::vector<IO::IMUData> imu_data_; // 喂进来的imu数据放在这里。
 
   Eigen::aligned_vector<Eigen::Vector3d> closest_point_vec_;
 
@@ -144,6 +147,7 @@ private:
   std::vector< std::shared_ptr<AccelMeasurement>> accel_list_;
   std::vector< std::shared_ptr<SurfMeasurement>>  surfelpoint_list_;
 };
-}
+
+} // namespace licalib
 
 #endif

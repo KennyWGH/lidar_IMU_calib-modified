@@ -35,8 +35,9 @@
 
 namespace licalib {
 
+// wgh-- 该类最重要的作用在于，调用类中的`unpack_scan()`函数，将rosbag包中的点云消息转换到算法需要的格式。
 class VelodyneCorrection {
-public:
+ public:
   typedef std::shared_ptr<VelodyneCorrection> Ptr;
 
   enum ModelType {
@@ -48,8 +49,10 @@ public:
     setParameters(m_modelType);
   }
 
+  // wgh-- 针对`特定velodyne格式`rosbag的点云格式解析函数
   void unpack_scan(const velodyne_msgs::VelodyneScan::ConstPtr &lidarMsg,
-                   TPointCloud &outPointCloud) const {
+                   TPointCloud &outPointCloud) const 
+  {
     outPointCloud.clear();
     outPointCloud.header = pcl_conversions::toPCL(lidarMsg->header);
     if (m_modelType == ModelType::VLP_16) {
@@ -148,9 +151,10 @@ public:
     }
   }
 
-
+  // wgh-- 针对`常规点云格式`rosbag的点云格式解析函数
   void unpack_scan(const sensor_msgs::PointCloud2::ConstPtr &lidarMsg,
-                   TPointCloud &outPointCloud) const {
+                   TPointCloud &outPointCloud) const 
+  {
     VPointCloud temp_pc;
     pcl::fromROSMsg(*lidarMsg, temp_pc);
 
@@ -176,12 +180,14 @@ public:
   }
 
 
-  inline double getExactTime(int dsr, int firing) const {
+  inline double getExactTime(int dsr, int firing) const 
+  {
     return mVLP16TimeBlock[firing][dsr];
   }
 
-private:
-  void setParameters(ModelType modelType) {
+ private:
+  void setParameters(ModelType modelType) 
+  {
     m_modelType = modelType;
     m_config.max_range = 150;
     m_config.min_range = 0.6;
@@ -249,12 +255,13 @@ private:
     }
   }
 
-  inline bool pointInRange(float range) const {
+  inline bool pointInRange(float range) const 
+  {
     return (range >= m_config.min_range
             && range <= m_config.max_range);
   }
 
-private:
+ private:
   static const int RAW_SCAN_SIZE = 3;
   static const int SCANS_PER_BLOCK = 32;
   static const int BLOCK_DATA_SIZE = (SCANS_PER_BLOCK * RAW_SCAN_SIZE);

@@ -31,8 +31,9 @@ std::istream& operator >> (std::istream& in, TranslationVector& t) {
   return in;
 }
 
+// 构造函数完成系统的初始化
 CalibInterface::CalibInterface(ros::NodeHandle& nh) :
-        CalibrHelper(nh),
+        CalibrHelper(nh)/*算法核心类初始化*/,
         show_surfel_map_("ui.show_surfel_map", true, false, true),
         show_all_association_points_("ui.show_all_associated_points", false, false, true),
         optimize_time_offset_("ui.optimize_time_offset", false, false, true),
@@ -42,18 +43,22 @@ CalibInterface::CalibInterface(ros::NodeHandle& nh) :
         show_gravity_("ui.g", TranslationVector()),
         show_gyro_bias_("ui.GB", TranslationVector()),
         show_acce_bias_("ui.AB", TranslationVector()),
-        show_time_offset_("ui.offset", 0.00, -0.1, 0.1) {
+        show_time_offset_("ui.offset", 0.00, -0.1, 0.1) 
+{
 
   bool show_ui = true;
   nh.param<bool>("show_ui", show_ui, true);
 
+  // wgh-- 如果使用Pangolin交互界面的话，就创建交互界面，不做算法动作。
   if (show_ui) {
     initGui();
     pangolin::ColourWheel cw;
     for (int i = 0; i < 200; i++) {
       pangolin_colors_.emplace_back(cw.GetUniqueColour());
     }
-  } else {
+  } 
+  // wgh-- 如果不使用交互界面的话，直接按步骤运行算法。
+  else {
     Initialization();
 
     DataAssociation();
@@ -71,8 +76,9 @@ CalibInterface::CalibInterface(ros::NodeHandle& nh) :
   }
 }
 
-
+// wgh-- 创建交互界面。
 void CalibInterface::initGui() {
+  // wgh-- 创建交互界面窗口，并设置界面参数。
   pangolin::CreateWindowAndBind("Main", 1600, 1000);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
@@ -87,6 +93,7 @@ void CalibInterface::initGui() {
           .SetBounds(0, 1.0, pangolin::Attach::Pix(UI_WIDTH), 1.0)
           .SetHandler(new pangolin::Handler3D(s_cam_));
 
+  // wgh-- 关联“交互界面的按钮”与对应的“算法动作”(以下函数位于父类)。
   pangolin::Var<std::function<void(void)>> initialization(
           "ui.Initialization", std::bind(&CalibInterface::Initialization, this));
 
@@ -103,6 +110,7 @@ void CalibInterface::initGui() {
           "ui.SaveMap", std::bind(&CalibInterface::saveMap, this));
 
   /// short-cut
+  // wgh-- 为交互界面注册键盘快捷操作。
   pangolin::RegisterKeyPressCallback('r',
                                      [this](){resetModelView();});
 
@@ -115,8 +123,10 @@ void CalibInterface::initGui() {
                                        show_lidar_frame_ =  show_lidar_frame_ + 1;});
 }
 
-
+// wgh-- 交互界面主循环。
 void CalibInterface::renderingLoop() {
+  // wgh-- 交互界面循环：在系统运行过程中一直循环，刷新显示；
+  // wgh-- 如果检查到有算法动作执行完成了(标志位为true)，可视化算法结果。
   while (!pangolin::ShouldQuit() && ros::ok()) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     pointcloud_view_display_->Activate(s_cam_);
@@ -196,7 +206,7 @@ void CalibInterface::renderingLoop() {
   }
 }
 
-
+// wgh-- 将标定结果显示在交互界面左侧的文本框中。
 void CalibInterface::showCalibResult() {
   CalibParamManager::Ptr v = traj_manager_->getCalibParamManager();
 

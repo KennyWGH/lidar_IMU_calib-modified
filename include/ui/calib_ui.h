@@ -30,6 +30,7 @@ struct TranslationVector {
   Eigen::Vector3d trans = Eigen::Vector3d(0,0,0);
 };
 
+// wgh-- 该类是一个实现人机交互界面的类；该类的父类为真正的算法类。
 class CalibInterface : public CalibrHelper {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -51,7 +52,7 @@ private:
   pangolin::View *pointcloud_view_display_;
   pangolin::OpenGlRenderState s_cam_;
 
-  std::vector<pangolin::Colour> pangolin_colors_;
+  std::vector<pangolin::Colour> pangolin_colors_; // wgh-- 获得N种不同的颜色，用于可视化点云
 
   pangolin::Var<bool> show_surfel_map_;
   pangolin::Var<bool> show_all_association_points_;

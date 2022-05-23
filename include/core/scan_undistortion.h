@@ -27,7 +27,7 @@
 namespace licalib {
 
 class ScanUndistortion {
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   typedef std::shared_ptr<ScanUndistortion> Ptr;
 
@@ -37,7 +37,9 @@ public:
                               dataset_reader_(std::move(dataset)) {
   }
 
-  void undistortScan(bool correct_position = false) {
+  // wgh-- 外部调用：以原始点云为基础，根据trajectory做去畸变，结果放在内部`scan_data_`中。
+  void undistortScan(bool correct_position = false) 
+  {
     scan_data_.clear();
 
     for (const TPointCloud& scan_raw: dataset_reader_->get_scan_data()) {
@@ -56,7 +58,9 @@ public:
     }
   }
 
-  void undistortScanInMap(bool correct_position = true) {
+  // wgh-- 外部调用：以原始点云为基础，根据trajectory做去畸变+坐标转换到world下，结果放在内部`scan_data_in_map_`中。
+  void undistortScanInMap(bool correct_position = true) 
+  {
     scan_data_in_map_.clear();
     map_cloud_ = VPointCloud::Ptr(new VPointCloud);
     Eigen::Quaterniond q_L0_to_G;
@@ -73,7 +77,9 @@ public:
     }
   }
 
-  void undistortScanInMap(const Eigen::aligned_vector<LiDAROdometry::OdomData>& odom_data) {
+  // wgh-- 外部调用：以scan_data_中的点云为基础，根据odom_data把坐标转换到world下，结果放在内部`scan_data_in_map_`中。
+  void undistortScanInMap(const Eigen::aligned_vector<LiDAROdometry::OdomData>& odom_data) 
+  {
     scan_data_in_map_.clear();
     map_cloud_ = VPointCloud::Ptr(new VPointCloud);
 
@@ -102,13 +108,15 @@ public:
     return map_cloud_;
   }
 
-private:
+ private:
 
+  // wgh-- 具体执行一帧点云去畸变的地方，correct_position控制是否把坐标转换到world坐标系下！
   void undistort(const Eigen::Quaterniond& q_G_to_target,
                  const Eigen::Vector3d& p_target_in_G,
                  const TPointCloud& scan_raw,
                  const VPointCloud::Ptr& scan_in_target,
-                 bool correct_position = false) const {
+                 bool correct_position = false) const 
+  {
     scan_in_target->header = scan_raw.header;
     scan_in_target->height = scan_raw.height;
     scan_in_target->width  = scan_raw.width;
@@ -153,8 +161,8 @@ private:
   TrajectoryManager::Ptr traj_manager_;
   std::shared_ptr<IO::LioDataset> dataset_reader_;
 
-  std::map<pcl::uint64_t, VPointCloud::Ptr> scan_data_;
-  std::map<pcl::uint64_t, VPointCloud::Ptr> scan_data_in_map_;
+  std::map<pcl::uint64_t, VPointCloud::Ptr> scan_data_;       //仅做了去畸变的原始点云，位于自己的雷达坐标系下，将来用于喂入NDT配准。
+  std::map<pcl::uint64_t, VPointCloud::Ptr> scan_data_in_map_;//做了去畸变，且位于世界坐标系下的一帧帧点云，将来用于构建point2surfel关联。
   VPointCloud::Ptr map_cloud_;
 };
 

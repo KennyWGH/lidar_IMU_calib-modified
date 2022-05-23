@@ -47,9 +47,11 @@ void SurfelAssociation::clearSurfelMap() {
   spoints_all_.clear();
 }
 
+// wgh-- 核心接口函数：从ndt栅格中提取有效平面？
 void SurfelAssociation::setSurfelMap(
         const pclomp::NormalDistributionsTransform<VPoint, VPoint>::Ptr& ndtPtr,
-        double timestamp) {
+        double timestamp) 
+{
   clearSurfelMap();
   map_timestamp_ = timestamp;
 
@@ -108,9 +110,11 @@ void SurfelAssociation::setSurfelMap(
 }
 
 
+// wgh-- 核心接口函数：根据输入的点云，构建与已知平面的关联。
 void SurfelAssociation::getAssociation(const VPointCloud::Ptr& scan_inM,
                                        const TPointCloud::Ptr& scan_raw,
-                                       size_t selected_num_per_ring) {
+                                       size_t selected_num_per_ring) 
+{
   const size_t width = scan_raw->width;
   const size_t height = scan_raw->height;
 
@@ -119,7 +123,7 @@ void SurfelAssociation::getAssociation(const VPointCloud::Ptr& scan_inM,
     associatedFlag[i] = -1;
   }
 
-#pragma omp parallel for num_threads(omp_get_max_threads())
+ #pragma omp parallel for num_threads(omp_get_max_threads())
   for (int plane_id = 0; plane_id < surfel_planes_.size(); plane_id++) {
     std::vector<std::vector<int>> ring_masks;
     associateScanToSurfel(plane_id, scan_inM, associated_radius_, ring_masks);
@@ -182,6 +186,8 @@ void SurfelAssociation::averageDownSmaple(int num_points_max) {
     }
   }
 }
+
+// wgh-- 按步长均匀降采样。
 void SurfelAssociation::averageTimeDownSmaple(int step) {
   for (size_t idx = 0; idx < spoints_all_.size(); idx+= step) {
     spoint_downsampled_.push_back(spoints_all_.at(idx));
@@ -247,11 +253,13 @@ double SurfelAssociation::point2PlaneDistance(Eigen::Vector3d &pt,
   return dist;
 }
 
+// wgh-- 如名，重要算法函数。
 void SurfelAssociation::associateScanToSurfel(
         const size_t& surfel_idx,
         const VPointCloud::Ptr& scan,
         const double& radius,
-        std::vector<std::vector<int>> &ring_masks) const {
+        std::vector<std::vector<int>> &ring_masks) const 
+{
 
   Eigen::Vector3d box_min = surfel_planes_.at(surfel_idx).boxMin;
   Eigen::Vector3d box_max = surfel_planes_.at(surfel_idx).boxMax;
@@ -275,4 +283,5 @@ void SurfelAssociation::associateScanToSurfel(
   }
 }
 
-}
+} // namespace licalib
+

@@ -31,6 +31,7 @@ bool InertialInitializer::EstimateRotation(
   std::shared_ptr<kontiki::trajectories::SplitTrajectory> p_traj
           = traj_manager->getTrajectory();
 
+  // wgh-- 残差项容器
   Eigen::aligned_vector<Eigen::Matrix4d> A_vec;
   for (size_t j = 1; j < odom_data.size(); ++j) {
     size_t i = j - 1;
@@ -38,6 +39,7 @@ bool InertialInitializer::EstimateRotation(
     double tj = odom_data.at(j).timestamp;
     if (tj >= p_traj->MaxTime())
       break;
+    // wgh-- 从样条曲线中查询出i、j时刻的插值姿态角
     auto result_i = p_traj->Evaluate(ti, flags);
     auto result_j = p_traj->Evaluate(tj, flags);
     Eigen::Quaterniond delta_qij_imu = result_i->orientation.conjugate()
@@ -61,6 +63,7 @@ bool InertialInitializer::EstimateRotation(
   if (valid_size < 15) {
     return false;
   }
+  // wgh-- delta旋转容器
   Eigen::MatrixXd A(valid_size * 4, 4);
   for (size_t i = 0; i < valid_size; ++i)
     A.block<4, 4>(i * 4, 0) = A_vec.at(i);
@@ -71,6 +74,7 @@ bool InertialInitializer::EstimateRotation(
   Eigen::Quaterniond q_ItoS_est(x);
   Eigen::Vector4d cov = svd.singularValues();
 
+  // wgh-- 如果协方差够小，则说明外参估计满足要求，我们保存结果；否则，返回false。
   if (cov(2) > 0.25) {
     q_ItoS_est_ = q_ItoS_est;
     rotaion_initialized_ = true;
